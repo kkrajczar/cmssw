@@ -47,6 +47,8 @@ from DQM.TrackingMonitorSource.TrackingSourceConfig_Tier0_cff import *
 # miniAOD DQM validation
 from Validation.RecoParticleFlow.miniAODDQM_cff import *
 
+triggerOfflineDQMSource.remove(hinHLTOfflineSourceSequence)
+
 DQMOfflinePrePOG = cms.Sequence( TrackingDQMSourceTier0 *
                                  muonMonitors *
                                  jetMETDQMOfflineSource *
