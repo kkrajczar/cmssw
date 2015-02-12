@@ -17,32 +17,87 @@ import math
 #   note: be extra carefull when using singleObject and combinedObject drawables in same
 #          handler definition. Histo names may be the same, currently there is no protection against it
 #
-def getHIHFCoincVPSet():
+def getPuAK4CaloJet40VPSet():
     ret=cms.VPSet()
-    partialPathName = "HLT_HIHFCoinc_v"
-    hltHFTowers =  cms.PSet(
+    partialPathName = "HLT_PuAK4CaloJet40_v"
+
+    hltCaloJets =  cms.PSet(
         triggerSelection = cms.string(partialPathName+"*"),
-#        handlerType = cms.string("FromHLT"),
-        handlerType = cms.string("RecoTrack"),
-        inputCol = cms.InputTag("hiGeneralTracks"), # needed if handlerType != FromHLT
+        handlerType = cms.string("FromHLT"),
         partialPathName = cms.string(partialPathName),
-        partialFilterName  = cms.string("hltL1sL1HcalHfCoincPmBptxAND"),
-        dqmhistolabel  = cms.string("hiGeneralTracks"),
+#        partialFilterName  = cms.string("ForHFJECBase"), # note: this matches to hltSingleCaloJetXXXForHFJECBase
+        partialFilterName  = cms.string("hltSinglePuAK4CaloJet40"),
+        dqmhistolabel  = cms.string("hltCaloJets"),
         mainDQMDirname = cms.untracked.string(hindirname),
-        singleObjectsPreselection = cms.string("1==1"),
-#        singleObjectsPreselection = cms.string("pt > 0.4 && abs(eta) < 2.4"), 
-        singleObjectDrawables =  cms.VPSet(
-            cms.PSet (name = cms.string("pt"), expression = cms.string("pt"), bins = cms.int32(50), min = cms.double(0.0), max = cms.double(10)),
-            cms.PSet (name = cms.string("eta"), expression = cms.string("eta"), bins = cms.int32(100), min = cms.double(-2.5), max = cms.double(2.5)),
-            cms.PSet (name = cms.string("phi"), expression = cms.string("phi"), bins = cms.int32(100), min = cms.double(-3.15), max = cms.double(3.15))
-        ),
+#        singleObjectsPreselection = cms.string("abs(eta)<1.4 || abs(eta) > 2.7 "),
+        singleObjectsPreselection = cms.string(""),
+        singleObjectDrawables =  cms.VPSet(),
         combinedObjectSelection =  cms.string("1==1"),
         combinedObjectSortCriteria = cms.string("at(0).pt"),
         combinedObjectDimension = cms.int32(1),
-        combinedObjectDrawables =  cms.VPSet()
+        combinedObjectDrawables =  cms.VPSet(
+#             cms.PSet (name = cms.string("pt"), expression = cms.string("at(0).pt"), bins = cms.int32(ptBins), min = cms.double(ptBinLow), max = cms.double(ptBinHigh)),
+             cms.PSet (name = cms.string("pt"), expression = cms.string("at(0).pt"), bins = cms.int32(100), min = cms.double(0), max = cms.double(100)),
+             cms.PSet (name = cms.string("eta"), expression = cms.string("at(0).eta"), bins = cms.int32(104), min = cms.double(-5.2), max = cms.double(5.2))
+        )
     )
-    ret.append(hltHFTowers)
+    ret.append(hltCaloJets)
 
+    l1Jets =  cms.PSet(
+        triggerSelection = cms.string(partialPathName+"*"),
+        handlerType = cms.string("FromHLT"),
+        partialPathName = cms.string(partialPathName),
+        partialFilterName  = cms.string("hltL1"),
+        dqmhistolabel  = cms.string("l1Jets"),
+        mainDQMDirname = cms.untracked.string(hindirname),
+        singleObjectsPreselection = cms.string("1==1"),
+        singleObjectDrawables =  cms.VPSet(),
+        combinedObjectSelection =  cms.string("1==1"),
+        combinedObjectSortCriteria = cms.string("at(0).pt"),
+        combinedObjectDimension = cms.int32(1),
+        combinedObjectDrawables =  cms.VPSet(
+             cms.PSet (name = cms.string("pt"), expression = cms.string("at(0).pt"), bins = cms.int32(256/4), min = cms.double(0), max = cms.double(256)),
+             cms.PSet (name = cms.string("eta"), expression = cms.string("at(0).eta"), bins = cms.int32(104/4), min = cms.double(-5.2), max = cms.double(5.2))
+        )
+    )
+    ret.append(l1Jets)
+
+    recoCaloJets  =  cms.PSet(
+        triggerSelection = cms.string(partialPathName+"*"),
+#        handlerType = cms.string("FromReco"),
+        handlerType = cms.string("FromRecoCandidate"),
+        inputCol = cms.InputTag("akPu4CaloJets"),
+        partialPathName = cms.string(partialPathName),
+        partialFilterName  = cms.string("hltSingleCaloJet40"),
+        dqmhistolabel  = cms.string("recoCaloJets"),
+        mainDQMDirname = cms.untracked.string(hindirname),
+#        singleObjectsPreselection = cms.string("pt>40 && (abs(eta)<2.0)"),
+        singleObjectsPreselection = cms.string(""),
+        singleObjectDrawables =  cms.VPSet(),
+        combinedObjectSelection =  cms.string("1==1"),
+        combinedObjectSortCriteria = cms.string("at(0).pt"),
+        combinedObjectDimension = cms.int32(1),
+        combinedObjectDrawables =  cms.VPSet(
+             cms.PSet (name = cms.string("pt"), expression = cms.string("at(0).pt"), bins = cms.int32(100), min = cms.double(0), max = cms.double(100)),
+             cms.PSet (name = cms.string("eta"), expression = cms.string("at(0).eta"), bins = cms.int32(52), min = cms.double(-5.2), max = cms.double(5.2))
+        )
+    )
+    ret.append(recoCaloJets) 
+
+    recoCaloJetsZB = recoCaloJets.clone()
+    recoCaloJetsZB.triggerSelection = cms.string("HLT_ZeroBias_v*")
+    recoCaloJetsZB.combinedObjectDrawables =  cms.VPSet(
+        cms.PSet (name = cms.string("Eff_denominator_pt"), expression = cms.string("at(0).pt()"),
+                         bins = cms.int32(100), min = cms.double(0), max = cms.double(100))
+    )
+    ret.append(recoCaloJetsZB)
+
+    return ret
+
+
+def getHIHFCoincVPSet():
+    ret=cms.VPSet()
+    partialPathName = "HLT_HIHFCoinc_v"
     HFTowersCountZB  =  cms.PSet(
             triggerSelection = cms.string(partialPathName+"*"),
             handlerType = cms.string("RecoTrack"),
@@ -52,25 +107,22 @@ def getHIHFCoincVPSet():
             partialFilterName  = cms.string(""), #what should go here?
             dqmhistolabel  = cms.string("FromReco"),
             mainDQMDirname = cms.untracked.string(hindirname),
-#            singleObjectsPreselection = cms.string("pt > 0.4 && abs(eta) < 2.4"), 
             singleObjectsPreselection = cms.string(""), 
             singleObjectDrawables =  cms.VPSet(),
             combinedObjectSelection =  cms.string("1==1"),
             combinedObjectSortCriteria = cms.string('at(0).pt()'), #largest pt?
             combinedObjectDimension = cms.int32(1),
             combinedObjectDrawables =  cms.VPSet(
-#                cms.PSet (name = cms.string("Eff_nominator"), expression = cms.string('0*at(0).pt()'), 
-                cms.PSet (name = cms.string("Eff_nominator"), expression = cms.string('at(0).pt()'), 
-                         bins = cms.int32(50), min = cms.double(0.), max = cms.double(10.))
+                cms.PSet (name = cms.string("Eff_nominator"), expression = cms.string('0*at(0).pt()'), #only put in 0
+                         bins = cms.int32(1), min = cms.double(-0.5), max = cms.double(0.5))
             )
     )
     ret.append(HFTowersCountZB)
     HFTowersCountDenomZB = HFTowersCountZB.clone()
     HFTowersCountDenomZB.triggerSelection = cms.string("HLT_ZeroBias_v*")
     HFTowersCountDenomZB.combinedObjectDrawables =  cms.VPSet(
-#        cms.PSet (name = cms.string("Eff_denominator"), expression = cms.string("0*at(0).pt()"),
-        cms.PSet (name = cms.string("Eff_denominator"), expression = cms.string("at(0).pt()"),
-                         bins = cms.int32(50), min = cms.double(0.), max = cms.double(10.))
+        cms.PSet (name = cms.string("Eff_denominator"), expression = cms.string("0*at(0).pt()"),
+                         bins = cms.int32(1), min = cms.double(-0.5), max = cms.double(0.5))
     )
     ret.append(HFTowersCountDenomZB)
 
@@ -135,104 +187,6 @@ def getZeroBias_SinglePixelTrackVPSet():
                          bins = cms.int32(1), min = cms.double(-0.5), max = cms.double(0.5))
     )
     ret.append(tracksCountDenomZB)
-
-    return ret
-
-def getHighMultVPSet():
-    ret=cms.VPSet()
-    thresholds = [60, 85, 110, 135, 160]
-    for t in thresholds:
-        partialPathName = "HLT_PixelTracks_Multiplicity"+str(t)+"_v"
-        tracksL = 0
-        tracksH = 200
-        tracksBins = (tracksH-tracksL)/5
-        tracksCount  =  cms.PSet(
-                triggerSelection = cms.string(partialPathName+"*"),
-                handlerType = cms.string("RecoTrackCounterWithVertexConstraint"),
-                inputCol = cms.InputTag("generalTracks"),
-                # l parameters
-                vtxCollection = cms.InputTag("offlinePrimaryVertices"),
-                minNDOF = cms.int32(7),
-                maxZ = cms.double(15),
-                maxDZ = cms.double(0.12),
-                maxDZ2dzsigma = cms.double(3),
-                maxDXY = cms.double(0.12),
-                maxDXY2dxysigma = cms.double(3),
-                partialPathName = cms.string(partialPathName),
-                partialFilterName  = cms.string("hltL1sETT"),
-                #dqmhistolabel  = cms.string("hltPixelTracks"),
-                dqmhistolabel  = cms.string("recoTracks"),
-                mainDQMDirname = cms.untracked.string(fsqdirname),
-                singleObjectsPreselection = cms.string("pt > 0.4 && abs(eta) < 2.4"), 
-                singleObjectDrawables =  cms.VPSet(),
-                combinedObjectSelection =  cms.string("1==1"),
-                combinedObjectSortCriteria = cms.string('size()'),
-                combinedObjectDimension = cms.int32(1),
-                combinedObjectDrawables =  cms.VPSet(
-                    cms.PSet (name = cms.string("count_nominator"), expression = cms.string('at(0)'), 
-                             bins = cms.int32(tracksBins), min = cms.double(tracksL), max = cms.double(tracksH))
-                )
-        )
-        ret.append(tracksCount)				
-
-        tracksCountDenom = tracksCount.clone()
-        tracksCountDenom.triggerSelection = cms.string("TRUE")
-        tracksCountDenom.combinedObjectDrawables =  cms.VPSet(
-            cms.PSet (name = cms.string("count_denominator"), expression = cms.string("at(0)"),
-                             bins = cms.int32(tracksBins), min = cms.double(tracksL), max = cms.double(tracksH))
-        )
-        ret.append(tracksCountDenom)
-
-
-        hltPixelTracks =  cms.PSet(
-            triggerSelection = cms.string(partialPathName+"*"),
-            handlerType = cms.string("FromHLT"),
-            partialPathName = cms.string(partialPathName),
-            partialFilterName  = cms.string("hlt1HighMult"),
-            dqmhistolabel  = cms.string("hltPixelTracks"),
-            mainDQMDirname = cms.untracked.string(fsqdirname),
-            singleObjectsPreselection = cms.string("1==1"),
-            singleObjectDrawables =  cms.VPSet(
-                cms.PSet (name = cms.string("pt"), expression = cms.string("pt"), bins = cms.int32(200), min = cms.double(0.0), max = cms.double(10)),
-                cms.PSet (name = cms.string("eta"), expression = cms.string("eta"), bins = cms.int32(100), min = cms.double(-2.5), max = cms.double(2.5)),
-                cms.PSet (name = cms.string("phi"), expression = cms.string("phi"), bins = cms.int32(100), min = cms.double(-3.15), max = cms.double(3.15))
-            ),
-            combinedObjectSelection =  cms.string("1==1"),
-            combinedObjectSortCriteria = cms.string("at(0).pt"),
-            combinedObjectDimension = cms.int32(1),
-            combinedObjectDrawables =  cms.VPSet()
-        )
-        ret.append(hltPixelTracks)
-
-        hltPixelTracksEta16to18 = hltPixelTracks.clone()
-        hltPixelTracksEta16to18.singleObjectsPreselection='abs(eta) > 1.6 && abs(eta) < 1.8'
-        hltPixelTracksEta16to18.dqmhistolabel  = cms.string("hltPixelTracksEta16to18")
-        for i in hltPixelTracksEta16to18.singleObjectDrawables:
-            if i.name == "eta":
-                hltPixelTracksEta16to18.singleObjectDrawables.remove(i)
-
-        ret.append(hltPixelTracksEta16to18)
-
-        # FIXME: what variables it makes sense to plot in case of ETT seeds?
-        l1 =  cms.PSet(
-                triggerSelection = cms.string(partialPathName+"*"),
-                handlerType = cms.string("FromHLT"),
-                partialPathName = cms.string(partialPathName),
-                partialFilterName  = cms.string("hltL1sETT"),
-                dqmhistolabel  = cms.string("l1"),
-                mainDQMDirname = cms.untracked.string(fsqdirname),
-                singleObjectsPreselection = cms.string("1==1"),
-                singleObjectDrawables =  cms.VPSet(),
-                combinedObjectSelection =  cms.string("1==1"),
-                combinedObjectSortCriteria = cms.string("at(0).pt"),
-                combinedObjectDimension = cms.int32(1),
-                combinedObjectDrawables =  cms.VPSet(
-                    cms.PSet (name = cms.string("pt"), expression = cms.string("at(0).pt"), bins = cms.int32(256/4), min = cms.double(0), max = cms.double(256)),
-                )
-        )
-        ret.append(l1) 
-
-
 
     return ret
 
@@ -433,9 +387,9 @@ def getPTAveVPSet():
 
 def getHINAll():
     ret = cms.VPSet()
-#    ret.extend(getHighMultVPSet())
 #    ret.extend(getPTAveVPSet())
 #    ret.extend(getZeroBias_SinglePixelTrackVPSet())
+    ret.extend(getPuAK4CaloJet40VPSet())
     ret.extend(getHIHFCoincVPSet())
     return ret
 
