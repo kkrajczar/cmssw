@@ -68,3 +68,16 @@ SKIMStreamHIJet150 = cms.FilteredStream(
 )
 
 #####################
+
+from HeavyIonsAnalysis.Configuration.HI_RAASkim_cff import *
+Jet150SkimPath = cms.Path( Jet150SkimSequence )
+SKIMStreamJet150 = cms.FilteredStream(
+	responsible = 'HI PAG',
+	name = 'Jet150',
+	paths = (Jet150SkimPath),
+	content = skimContent.outputCommands,
+	selectEvents = cms.untracked.PSet(),
+	dataTier = cms.untracked.string('RAW-RECO')
+)
+
+#####################
